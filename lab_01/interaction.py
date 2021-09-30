@@ -1,7 +1,8 @@
 import time
 from pprint import pprint
-from typing import Optional
+from typing import Optional, Callable
 
+from analysis import Analyzer
 from lib import (
     levenshtein_recurs,
     levenshtein_recurs_mem,
@@ -32,6 +33,13 @@ class UserInteraction:
         2: levenshtein_recurs_mem,
         3: damerau_levenshtein,
         4: damerau_levenshtein_recurs,
+    }
+
+    _MAP_FUNC_AND_MEM: dict[LevenshteinFunc, Callable[[str, str], int]] = {
+        _MAP_ALG[1]: Analyzer.mem_recursive,
+        _MAP_ALG[2]: Analyzer.mem_cached,
+        _MAP_ALG[3]: Analyzer.mem_iterative,
+        _MAP_ALG[4]: Analyzer.mem_recursive,
     }
 
     _OUTPUT_MENU = f'''
@@ -81,9 +89,13 @@ class UserInteraction:
         start = time.process_time_ns()
         data = self._FUNC(str1, str2)
         self._TIME = round((time.process_time_ns() - start) * 1e-6, 5)
+        self._MEM = self._MAP_FUNC_AND_MEM[self._FUNC](str1, str2)
         self.parse_data(data)
-        print(self._OUTPUT_RESULT.format(distance=self._DIST, matrix=self._M, depth=self._DEPTH, memory=self._MEM,
-                                         time=self._TIME))
+        print(self._OUTPUT_RESULT.format(distance=self._DIST,
+                                         matrix=self._M,
+                                         depth=self._DEPTH,
+                                         memory=self._MEM,
+                                         time=self._TIME, ))
 
     def parse_data(self, data: tuple) -> None:
         self._DIST = data[0]

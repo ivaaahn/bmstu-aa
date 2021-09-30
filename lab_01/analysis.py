@@ -85,13 +85,17 @@ class Analyzer:
         return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
 
     @staticmethod
-    def mem_iterative() -> int:
-        pass
+    def _m_mem(s1: str, s2: str) -> int:
+        return (len(s1) + 1) * (len(s2) + 1) * 4 + 8
 
     @staticmethod
-    def mem_recursive() -> int:
-        pass
+    def mem_iterative(s1: str, s2: str) -> int:
+        return Analyzer._m_mem(s1, s2) + 108
 
     @staticmethod
-    def mem_cached() -> int:
-        pass
+    def mem_recursive(s1: str, s2: str) -> int:
+        return 112 * (len(s1) + len(s2))
+
+    @staticmethod
+    def mem_cached(s1: str, s2: str) -> int:
+        return Analyzer.mem_recursive(s1, s2) + Analyzer._m_mem(s1, s2)
