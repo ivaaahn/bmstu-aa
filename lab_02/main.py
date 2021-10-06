@@ -1,16 +1,37 @@
-# This is a sample Python script.
+from dataclasses import dataclass
+from typing import Optional
 
-# Press F5 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press F9 to toggle the breakpoint.
+import toml
+from interaction import UserInteraction
+from analysis import Analyzer
 
 
-# Press the green button in the gutter to run the script.
+@dataclass
+class Config:
+    is_test_mode: bool
+
+
+def parse_config(path: str = './config.toml') -> Optional[Config]:
+    config = toml.load(path)
+
+    try:
+        is_test_mode = config['TEST_MODE']
+    except KeyError:
+        return None
+
+    return Config(is_test_mode=is_test_mode)
+
+
+def main():
+    if (cfg := parse_config()) is None:
+        print('Не удалось прочитать конфигурационный файл')
+        return -1
+
+    if cfg.is_test_mode:
+        UserInteraction().start()
+    else:
+        Analyzer().start()
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main()

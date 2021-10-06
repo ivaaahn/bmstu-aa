@@ -1,137 +1,135 @@
 from .types import MatrixInt, VectorInt
 
+__all__ = ['simple_mul', 'win_mul', 'win_mul_imp']
+
 
 def simple_mul(lm: MatrixInt, rm: MatrixInt) -> MatrixInt:
-    resm = MatrixInt(lm.m, rm.n)
+    m, n, q = lm.m, lm.n, rm.n
+    res = MatrixInt(m, q)
 
     i = 0
-    while i < resm.m:
+    while i < m:
         j = 0
-        while j < resm.n:
+        while j < q:
             k = 0
-            while k < lm.n:
-                resm[i][j] = resm[i][j] + lm[i][k] * rm[k][j]
+            while k < n:
+                res[i][j] += lm[i][k] * rm[k][j]
                 k += 1
             j += 1
         i += 1
 
-    return resm
+    return res
 
 
-def _calc_win_rows(m: MatrixInt) -> VectorInt:
-    cf = VectorInt(m.m)
+def _fill_mul_h(mul_h: VectorInt, matrix: MatrixInt) -> None:
+    m, n = matrix.m, matrix.n
 
     i = 0
-    while i < m.m:
+    while i < m:
         k = 0
-        while k < m.n // 2:
-            cf[i] = cf[i] + m[i][2 * k] * m[i][2 * k + 1]
+        while k < n // 2:
+            mul_h[i] = mul_h[i] + matrix[i][2 * k] * matrix[i][2 * k + 1]
             k += 1
         i += 1
 
-    return cf
 
-
-def _calc_win_rows_imp(m: MatrixInt) -> VectorInt:
-    cf = VectorInt(m.m)
+def _fill_mul_v(mul_v: VectorInt, matrix: MatrixInt) -> None:
+    n, q = matrix.m, matrix.n
 
     i = 0
-    while i < m.m:
-        buf, k = 0, 0
-        while k < m.n:
-            buf -= m[i][k] * m[i][k + 1]
-            k += 2
-        cf[i] = buf
-        i += 1
-
-    return cf
-
-
-def _calc_win_cols(m: MatrixInt) -> VectorInt:
-    cf = VectorInt(m.n)
-
-    i = 0
-    while i < m.n:
+    while i < q:
         k = 0
-        while k < m.m // 2:
-            cf[i] = cf[i] + m[2 * k][i] * m[2 * k + 1][i]
+        while k < n // 2:
+            mul_v[i] = mul_v[i] + matrix[2 * k][i] * matrix[2 * k + 1][i]
             k += 1
         i += 1
-
-    return cf
-
-
-def _calc_win_cols_imp(m: MatrixInt) -> VectorInt:
-    cf = VectorInt(m.n)
-
-    i = 0
-    while i < m.n:
-        buf, k = 0, 0
-        while k < m.m:
-            buf -= m[k][i] * m[k + 1][i]
-            k += 2
-        cf[i] = buf
-        i += 1
-
-    return cf
 
 
 def win_mul(lm: MatrixInt, rm: MatrixInt) -> MatrixInt:
-    resm = MatrixInt(lm.m, rm.n)
+    m, n, q = lm.m, lm.n, rm.n
 
-    mul_h = _calc_win_rows(lm)
-    mul_v = _calc_win_cols(rm)
+    mul_h = VectorInt(m)
+    _fill_mul_h(mul_h, lm)
 
+    mul_v = VectorInt(q)
+    _fill_mul_v(mul_v, rm)
+
+    res = MatrixInt(m, q)
     i = 0
-    while i < resm.m:
+    while i < m:
         j = 0
-        while j < resm.n:
+        while j < q:
             k = 0
-            resm[i][j] = - mul_h[i] - mul_v[j]
-            while k < lm.n // 2:
-                resm[i][j] = resm[i][j] \
-                             + (lm[i][2 * k] + rm[2 * k + 1][j]) \
-                             * (lm[i][2 * k + 1] + rm[2 * k][j])
+            res[i][j] = - mul_h[i] - mul_v[j]
+            while k < n // 2:
+                res[i][j] = res[i][j] \
+                            + (lm[i][2 * k] + rm[2 * k + 1][j]) \
+                            * (lm[i][2 * k + 1] + rm[2 * k][j])
                 k += 1
             j += 1
         i += 1
 
-        if lm.n % 2:
-            i = 0
-            while i < resm.m:
-                j = 0
-                while j < resm.n:
-                    resm[i][j] = resm[i][j] \
-                                 + lm[i][lm.n - 1] \
-                                 * rm[lm.n - 1][j]
-                    j += 1
-                i += 1
+    if n % 2 == 1:
+        i = 0
+        while i < m:
+            j = 0
+            while j < q:
+                res[i][j] = res[i][j] + lm[i][n - 1] * rm[n - 1][j]
+                j += 1
+            i += 1
+    return res
 
-    return resm
+
+def _fill_mul_h_imp(mul_h: VectorInt, matrix: MatrixInt) -> None:
+    m, n = matrix.m, matrix.n
+
+    i = 0
+    while i < m:
+        buf, k = 0, 1
+        while k < n:
+            buf -= matrix[i][k - 1] * matrix[i][k]
+            k += 2
+        mul_h[i] = buf
+        i += 1
+
+
+def _fill_mul_v_imp(mul_v: VectorInt, matrix: MatrixInt) -> None:
+    n, q = matrix.m, matrix.n
+
+    i = 0
+    while i < q:
+        buf, k = 0, 1
+        while k < n:
+            buf -= matrix[k - 1][i] * matrix[k][i]
+            k += 2
+        mul_v[i] = buf
+        i += 1
 
 
 def win_mul_imp(lm: MatrixInt, rm: MatrixInt) -> MatrixInt:
-    resm = MatrixInt(lm.m, rm.n)
+    m, n, q = lm.m, lm.n, rm.n
 
-    is_odd = lm.n % 2
-    n_minus_one = lm.n - 1
+    mul_h = VectorInt(m)
+    _fill_mul_h_imp(mul_h, lm)
 
-    mul_h = _calc_win_rows_imp(lm)
-    mul_v = _calc_win_cols_imp(rm)
+    mul_v = VectorInt(q)
+    _fill_mul_v_imp(mul_v, rm)
 
+    is_odd = n & 1
+    res = MatrixInt(m, q)
     i = 0
-    while i < resm.m:
+    while i < m:
         j = 0
-        while j < resm.n:
-            buf, k = mul_h[i] + mul_v[j], 0
-            while k < lm.n:
-                buf += (lm[i][k] + rm[k + 1][j]) * (lm[i][k + 1] + rm[k][j])
+        while j < q:
+            buf, k = mul_h[i] + mul_v[j], 1
+            while k < n:
+                buf += (lm[i][k - 1] + rm[k][j]) * (lm[i][k] + rm[k - 1][j])
                 k += 2
-            if is_odd:
-                buf += lm[i][n_minus_one] * rm[n_minus_one][j]
+            if is_odd == 1:
+                buf += lm[i][n - 1] * rm[n - 1][j]
 
-            resm[i][j] = buf
+            res[i][j] = buf
             j += 1
         i += 1
 
-    return resm
+    return res
