@@ -1,0 +1,236 @@
+\chapter{Технологическая часть}
+
+\section{Требование к ПО}
+К программе предъявляется ряд требований:
+\begin{itemize}
+    \item предоставить возможность ввода пользователем целочисленных матриц, которые необходимо перемножить;
+	\item предоставить возможность автозаполнения матриц заданных размерностей случайными числами;
+	\item печать результатов перемножения матриц, используя классического алгоритма, алгоритма
+    Винограда и оптимизированного алгоритма Винограда.
+\end{itemize}
+
+\section{Средства реализации}
+Для реализации программы нахождения расстояние Левенштейна был выбран язык программирования Python3\cite{python}.
+Данный выбор обусловлен простотой и скоростью написания программ, а также наличием встроенных библиотек для построения
+графиков функций и тестирования. В качестве среды разработки был выбран \texttt{PyCharm}\cite{pycharm}, как наиболее 
+популярная IDE для Python3. 
+
+\section{Реализация алгоритмов}
+
+В листингах \ref{lst:classic}-\ref{lst:win-imp} предствалены реализации классического алгоритма перемножения матриц, алгоритма Винограда, а также оптимизированного 
+алгоритма Винограда.
+
+\begin{lstlisting}[style=mypython, label=lst:classic,caption=Функция классического перемножения матриц,language=python]
+def simple_mul(lm: MatrixInt, rm: MatrixInt) -> MatrixInt:
+    m, n, q = lm.m, lm.n, rm.n
+    res = MatrixInt(m, q)
+
+    i = 0
+    while i < m:
+        j = 0
+        while j < q:
+            k = 0
+            while k < n:
+                res[i][j] += lm[i][k] * rm[k][j]
+                k += 1
+            j += 1
+        i += 1
+
+return res
+\end{lstlisting}
+
+\begin{lstlisting}[style=mypython, label=lst:win,caption=Функция для перемножения матриц алгоритмом Винограда,language=python]
+def win_mul(lm: MatrixInt, rm: MatrixInt) -> MatrixInt:
+    m, n, q = lm.m, lm.n, rm.n
+
+    mul_h = VectorInt(m)
+    fill_mul_h(mul_h, lm)
+
+    mul_v = VectorInt(q)
+    fill_mul_v(mul_v, rm)
+
+    res = MatrixInt(m, q)
+    i = 0
+    while i < m:
+        j = 0
+        while j < q:
+            k = 0
+            res[i][j] = - mul_h[i] - mul_v[j]
+            while k < n // 2:
+                res[i][j] = res[i][j] \
+                            + (lm[i][2 * k] + rm[2 * k + 1][j]) \
+                            * (lm[i][2 * k + 1] + rm[2 * k][j])
+                k += 1
+            j += 1
+        i += 1
+
+    if n % 2 == 1:
+        i = 0
+        while i < m:
+            j = 0
+            while j < q:
+                res[i][j] = res[i][j] + lm[i][n - 1] * rm[n - 1][j]
+                j += 1
+            i += 1
+    return res
+
+def fill_mul_h(mul_h: VectorInt, matrix: MatrixInt) -> None:
+    m, n = matrix.m, matrix.n
+
+    i = 0
+    while i < m:
+        k = 0
+        while k < n // 2:
+            mul_h[i] = mul_h[i] + matrix[i][2 * k] * matrix[i][2 * k + 1]
+            k += 1
+        i += 1
+
+
+def fill_mul_v(mul_v: VectorInt, matrix: MatrixInt) -> None:
+    n, q = matrix.m, matrix.n
+
+    i = 0
+    while i < q:
+        k = 0
+        while k < n // 2:
+            mul_v[i] = mul_v[i] + matrix[2 * k][i] * matrix[2 * k + 1][i]
+            k += 1
+        i += 1
+\end{lstlisting}
+
+% \vspace{2\baselineskip}
+
+\begin{lstlisting}[style=mypython, label=lst:win-imp,caption=Функция для перемножения матриц оптимизированным алгоритмом Винограда,language=python]
+def win_mul_imp(lm: MatrixInt, rm: MatrixInt) -> MatrixInt:
+    m, n, q = lm.m, lm.n, rm.n
+
+    mul_h = VectorInt(m)
+    fill_mul_h_imp(mul_h, lm)
+
+    mul_v = VectorInt(q)
+    fill_mul_v_imp(mul_v, rm)
+
+    is_odd = n & 1
+    res = MatrixInt(m, q)
+    i = 0
+    while i < m:
+        j = 0
+        while j < q:
+            buf, k = mul_h[i] + mul_v[j], 1
+            while k < n:
+                buf += (lm[i][k - 1] + rm[k][j]) * (lm[i][k] + rm[k - 1][j])
+                k += 2
+            if is_odd == 1:
+                buf += lm[i][n - 1] * rm[n - 1][j]
+
+            res[i][j] = buf
+            j += 1
+        i += 1
+
+return res
+
+def fill_mul_h_imp(mul_h: VectorInt, matrix: MatrixInt) -> None:
+    m, n = matrix.m, matrix.n
+
+    i = 0
+    while i < m:
+        buf, k = 0, 1
+        while k < n:
+            buf -= matrix[i][k - 1] * matrix[i][k]
+            k += 2
+        mul_h[i] = buf
+        i += 1
+
+
+def fill_mul_v_imp(mul_v: VectorInt, matrix: MatrixInt) -> None:
+    n, q = matrix.m, matrix.n
+
+    i = 0
+    while i < q:
+        buf, k = 0, 1
+        while k < n:
+            buf -= matrix[k - 1][i] * matrix[k][i]
+            k += 2
+        mul_v[i] = buf
+        i += 1
+\end{lstlisting}
+
+
+\section{Тестовые данные}
+
+В таблице~\ref{tabular:test_rec} приведены тесты для функций, реализующих 
+стандартный алгоритм умножения матриц, алгоритм Винограда и оптимизированный алгоритм Винограда.
+
+\begin{table}[h!]
+	\begin{center}
+		\begin{tabular}{c@{\hspace{7mm}}c@{\hspace{7mm}}c@{\hspace{7mm}}c@{\hspace{7mm}}c@{\hspace{7mm}}c@{\hspace{7mm}}}
+			\hline
+			Первая матрица & Вторая матрица & Ожидаемый результат \\ \hline
+			\vspace{4mm}
+			$\begin{pmatrix}
+			0 & 1\\
+			0 & 1\\
+			0 & 1
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			1 & 2 & 3\\
+			1 & 2 & 3
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			1 & 2 & 3\\
+			1 & 2 & 3\\
+			1 & 2 & 3
+			\end{pmatrix}$ \\
+			\vspace{2mm}
+			\vspace{2mm}
+			$\begin{pmatrix}
+			1 & 0 & 2\\
+			1 & 0 & 2
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			1 & 0\\
+			1 & 0\\
+			1 & 0
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			3 & 0\\
+			3 & 0
+			\end{pmatrix}$ \\
+			\vspace{2mm}
+			\vspace{2mm}
+			$\begin{pmatrix}
+			2
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			3
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			6
+			\end{pmatrix}$ \\
+			\vspace{2mm}
+			\vspace{2mm}
+			$\begin{pmatrix}
+			1 & 2 & 3\\
+			1 & 2 & 3\\
+			1 & 2 & 3
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			3 & 2 & 1\\
+			3 & 2 & 1\\
+			3 & 2 & 1
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+			18 & 12 & 6\\
+			18 & 12 & 6\\
+			18 & 12 & 6
+			\end{pmatrix}$\\
+			\vspace{2mm}
+			\vspace{2mm}
+		\end{tabular}
+	\end{center}
+	\caption{\label{tabular:test_rec} Тестирование функций}
+\end{table}
+
+
+\section{Вывод}
+В данном разделе были рассмотрены исходные коды реализованных алгоритмов, а также тестовые случаи для них.
