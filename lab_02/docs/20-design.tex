@@ -1,11 +1,71 @@
 \chapter{Конструкторская часть}
 
 \section{Разработка алгоритмов}
-На рисунке \ref{scheme:simple} приведена схема стандартного алгоритма перемножения матриц.
-На рисунках \ref{scheme:win-top} -- \ref{scheme:fillmul} и \ref{scheme:win-imp-top} -- \ref{scheme:fillmul-imp} приведены
-схемы алгоритма Винограда и оптимизированного алгоритма Винограда для перемножения матриц соответственно.
+На рисунке \ref{scheme:simple} приведена схема классического алгоритма для перемножения матриц.
 
-Для алгоритма Винограда худшим случаем являются матрицы нечетной размерности, а лучшим -- четной, поскольку
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.65]{schemes/simple}
+	\caption{Схема классического алгоритма для перемножения матриц}
+	\label{scheme:simple}
+\end{figure}
+
+% \newpage
+На рисунках \ref{scheme:win-top} -- \ref{scheme:fillmul} приведены схемы алгоритма Винограда для перемножения матриц.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.6]{schemes/win-top}
+	\caption{Схема алгоритма Винограда для перемножения матриц}
+	\label{scheme:win-top}
+\end{figure}
+
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.6]{schemes/win-bottom}
+	\caption{Продолжение схемы алгоритма Винограда для перемножения матриц}
+	\label{scheme:win-bottom}
+\end{figure}
+
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.6]{schemes/fillmul}
+	\caption{Схемы алгоритмов предварительных вычислений в алгоритме Винограда. Заполнение векторов MulH (а) и MulV (б)}
+	\label{scheme:fillmul}
+\end{figure}
+
+
+На рисунках \ref{scheme:win-imp-top} -- \ref{scheme:fillmul-imp} приведены
+схемы алгоритма оптимизированного алгоритма Винограда для перемножения матриц.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.6]{schemes/win-imp-top}
+	\caption{Схема оптимизированного алгоритма Винограда для перемножения матриц}
+	\label{scheme:win-imp-top}
+\end{figure}
+
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.6]{schemes/win-imp-bottom}
+	\caption{Продолжение схемы оптимизированного алгоритма Винограда для перемножения матриц}
+	\label{scheme:win-imp-bottom}
+\end{figure}
+
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.6]{schemes/fillmul-imp}
+	\caption{Схемы алгоритмов предварительных вычислений в опитмизированном алгоритме Винограда. Заполнение MulH (а) и MulV (б)}
+	\label{scheme:fillmul-imp}
+\end{figure}
+
+\clearpage
+
+Заметим, что для алгоритма Винограда худшим случаем являются матрицы нечетной размерности, а лучшим -- четной, поскольку
 в таком случае отпадает необходимость в последнем цикле.
 
 Данный алгоритм может быть улучшен путем использования следующих оптимизаций:
@@ -18,66 +78,12 @@
 	\item объединение основного внешнего цикла с последним.
 \end{itemize}
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=1]{schemes/simple}
-	\caption{Схема стандартного алгоритма перемножения матриц}
-	\label{scheme:simple}
-\end{figure}
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.65]{schemes/win-top}
-	\caption{Схема алгоритма Винограда для перемножения матриц}
-	\label{scheme:win-top}
-\end{figure}
 
 
-\begin{figure}[h]
-	\centering
-	\includegraphics{schemes/win-bottom}
-	\caption{Продолжение схемы алгоритма Винограда для перемножения матриц}
-	\label{scheme:win-bottom}
-\end{figure}
-
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.82]{schemes/fillmul}
-	\caption{Схема алгоритмов предварительных вычислений в алгоритме Винограда}
-	\label{scheme:fillmul}
-\end{figure}
-
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.65]{schemes/win-imp-top}
-	\caption{Схема оптимизированного алгоритма Винограда для перемножения матриц}
-	\label{scheme:win-imp-top}
-\end{figure}
-
-
-\begin{figure}[h]
-	\centering
-	\includegraphics{schemes/win-imp-bottom}
-	\caption{Продолжение схемы оптимизированного алгоритма Винограда для перемножения матриц}
-	\label{scheme:win-imp-bottom}
-\end{figure}
-
-
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.81]{schemes/fillmul-imp}
-	\caption{Схема алгоритмов предварительных вычислений в оптимизированном алгоритме Винограда}
-	\label{scheme:fillmul-imp}
-\end{figure}
-
-
+\clearpage
 \section{Модель вычислений}
 
 Для последующего вычисления трудоемкости введём модель вычислений:
-
 \begin{enumerate}
 	\item Трудоемкость базовых операций:
 	
@@ -93,7 +99,7 @@
 	/, *, \%
 	\end{equation}
 		
-	\item Трудоемкость оператора выбора if условие then A else B рассчитывается, как (\ref{for:if}).
+	\item Трудоемкость условного оператора ``if условие then A else B'' рассчитывается, как (\ref{for:if}).
 	\begin{equation}
 	\label{for:if}
 	f_{if} = f_{\text{условия}} +
@@ -102,7 +108,7 @@
 	f_B, & \text{иначе.}
 	\end{cases}
 	\end{equation}
-	\item Трудоемкость цикла рассчитывается по C-подобной модели, то есть "for (i=0; i<N; i+=1)", как (\ref{for:for}).
+	\item Трудоемкость цикла рассчитывается по C-подобной модели, то есть ``for (i = 0; i < N; i += 1)'', как (\ref{for:for}).
 	\begin{equation}
 	\label{for:for}
 	f_{for} = f_{\text{инициализации}} + f_{\text{сравнения}} + N(f_{\text{тела}} + f_{\text{инкремента}} + f_{\text{сравнения}})
@@ -117,9 +123,9 @@
 
 Трудоёмкость стандартного алгоритма перемножения матриц складывается из трудоемкостей:
 \begin{itemize}
-	\item Внешнего цикла по $i \in [1..M]$, трудоёмкость которого: $f = 2 + M \cdot (2 + f_{body})$;
-	\item Цикла по $j \in [1..Q]$, трудоёмкость которого: $f = 2 + Q \cdot (2 + f_{body})$;
-	\item Скалярного умножения двух векторов - цикл по $k \in [1..N]$, трудоёмкость которого: $f = 2 + 11N$;
+	\item внешнего цикла по $i \in [1..M]$, трудоёмкость которого: $f = 2 + M \cdot (2 + f_{body})$;
+	\item цикла по $j \in [1..Q]$, трудоёмкость которого: $f = 2 + Q \cdot (2 + f_{body})$;
+	\item скалярного умножения двух векторов - цикл по $k \in [1..N]$, трудоёмкость которого: $f = 2 + 11N$.
 \end{itemize}
 
 Трудоёмкость стандартного алгоритма равна трудоёмкости внешнего цикла, можно вычислить ее, подставив циклы тела (\ref{for:base}):
@@ -136,13 +142,13 @@
 	\item Создания векторов $MulH$ и $MulV$ (\ref{for:init}):
 	\begin{equation}
 	\label{for:init}
-	f_{create} = f_{MulH} + f_{MulV};
+	f_{create} = f_{MulH} + f_{MulV}
 	\end{equation}
 	
 	\item Заполнения вектора $MulH$ (\ref{for:MulH}):
 	\begin{equation}
 	\label{for:MulH}
-	f_{MulH}=2+M(2+4+\frac{N}{2}(4+6+2+1+2\cdot3))=\frac{19}{2}MN+6M+2;
+	f_{MulH}=2+M(2+4+\frac{N}{2}(4+6+2+1+2\cdot3))=\frac{19}{2}MN+6M+2
 	\end{equation}
 	
 	\item Заполнения вектора $MulV$ (аналогично \ref{for:MulH}):
@@ -154,7 +160,7 @@
 	\item Цикла заполнения матрицы для чётных размеров (\ref{for:cycle}):
 	\begin{equation}
 	\label{for:cycle}
-	f_{cycle}=2+M(4+Q(13+\frac{N}{2}\cdot32))=16MNQ+13MQ+4M+2;
+	f_{cycle}=2+M(4+Q(13+\frac{N}{2}\cdot32))=16MNQ+13MQ+4M+2
 	\end{equation}
 	
 	\item Цикла, для дополнения умножения суммой последних нечётных строки и столбца, если общий размер нечётный (\ref{for:last}):
@@ -172,7 +178,7 @@ Cуммарная трудоёмкость:
 	\label{for:common}
 	\begin{split}
 		&f_{win-common}=f_{create}+f_{cycle}+f_{last}=16MNQ+13MQ+\frac{19}{2}(MN+QN)+\\
-		&+10M+6Q+9+\begin{cases}0 & \text{если N - четно}\\13MQ+4M+2 & \text{иначе.};\end{cases}
+		&+10M+6Q+9+\begin{cases}0, & \text{если N - четно}\\13MQ+4M+2, & \text{иначе.}\end{cases}
 	\end{split}
 \end{equation}
 
@@ -197,19 +203,19 @@ Cуммарная трудоёмкость:
 	\item Создания векторов $MulH$ и $MulV$ (\ref{for:init-imp}):
 	\begin{equation}
 	\label{for:init-imp}
-	f_{create} = f_{MulH} + f_{MulV};
+	f_{create} = f_{MulH} + f_{MulV}
 	\end{equation}
 	
 	\item Заполнения вектора $MulH$ (\ref{for:MulH-imp}):
 	\begin{equation}
 	\label{for:MulH-imp}
-	f_{MulH}=2+M(2+1+2+\frac{N}{2}(2+4+2+1+1)+2)=5MN+7M+2;
+	f_{MulH}=2+M(2+1+2+\frac{N}{2}(2+4+2+1+1)+2)=5MN+7M+2
 	\end{equation}
 	
 	\item Заполнения вектора $MulV$ (аналогично \ref{for:MulH-imp}):
 	\begin{equation}
 	\label{for:MulV-imp}
-	f_{MulV}=5QN+7Q+2;
+	f_{MulV}=5QN+7Q+2
 	\end{equation}
 	
 	\item Цикла заполнения матрицы для чётных размеров (\ref{for:cycle-imp}):

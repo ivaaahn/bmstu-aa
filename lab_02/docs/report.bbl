@@ -9,10 +9,13 @@
 
 \bibitem{optimize}
 \selectlanguageifdefined{russian}
-Погорелов~Дмитрий~Александрович.
-  Оптимизация классического алгоритма
-  Винограда для перемножения матриц~//
-  Журнал №1 (Vol. 49). URL:  https://www.gyrnal.ru/statyi/ru/1153/.
+Бахвалов~Н.С. Численные методы.
+\newblock Наука, 1987.
+
+\bibitem{win-book}
+\selectlanguageifdefined{russian}
+Кормен~Т. Алгоритмы: построение и анализ.
+\newblock МЦНТО, 1999.
 
 \bibitem{python}
 \selectlanguageifdefined{russian}
