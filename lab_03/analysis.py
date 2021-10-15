@@ -63,7 +63,6 @@ class Analyzer:
 
     @staticmethod
     def _test_function(func: SortFuncType, array: ArrayInt, repeats: int) -> int:
-        import functools
         import timeit
 
         return timeit.timeit(stmt=lambda: func(array.copy(), len(array)), timer=process_time_ns, number=repeats) / repeats
