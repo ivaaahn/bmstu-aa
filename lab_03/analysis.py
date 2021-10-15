@@ -2,22 +2,23 @@ import random
 import matplotlib.pyplot as plt
 from time import process_time_ns
 from lib import *
-
+from lib.types import *
 
 class Analyzer:
-    _REPEATS = 10
+    _REPEATS = 50
     _RESULTS: dict[SortFuncType, dict[int, float]] = {func: {} for func in func_description}
-    _SIZES: list[int] = [_ for _ in range(100, 1001, 100)]
-
+    _SIZES: list[int] = [10, 50, 100, 250, 500, 750, 1000]
     @classmethod
     def start(cls) -> None:
         for size in cls._SIZES:
             print(f'{size} get started')
-            array = [random.randint(0, 99) for _ in range(size)]
-            random.shuffle(array)
+            array = [random.randint(0, 9999) for _ in range(size)]
+            array.sort()
+            array.reverse()
             for func, descr in func_description.items():
+                curr_array = array.copy()
                 print(f'\t{descr}: ', end='')
-                cls._RESULTS[func][size] = cls._test_function(func, array, cls._REPEATS, size) * 1e-6
+                cls._RESULTS[func][size] = cls._test_function(func, curr_array, cls._REPEATS) * 1e-6
                 print(f'Done')
             print(f'{size} Done')
 
@@ -33,6 +34,12 @@ class Analyzer:
             for size, res_time in results.items():
                 print(f'\t{size}: {round(res_time, 3)} ms')
             print()
+
+        with open('saved/data.csv', 'w') as f:
+            f.write(f'Size,BubbleSort,InsertSort,SelectSort\n')
+            b, i, s = cls._RESULTS.values()
+            for n, rb, ri, rs in zip(b.keys(), b.values(), i.values(), s.values()):
+                f.write(f'{n},{round(rb, 4)},{round(ri, 4)},{round(rs, 4)}\n')
 
     @classmethod
     def render_graph(cls, *args, **kwargs) -> None:
@@ -55,9 +62,8 @@ class Analyzer:
         plt.show()
 
     @staticmethod
-    def _test_function(func: SortFuncType, array: ArrayInt, repeat: int, size: int) -> int:
+    def _test_function(func: SortFuncType, array: ArrayInt, repeats: int) -> int:
         import functools
         import timeit
 
-        return min(
-            timeit.Timer(stmt=functools.partial(func, array, size), timer=process_time_ns).repeat(5, repeat)) / repeat
+        return timeit.timeit(stmt=lambda: func(array.copy(), len(array)), timer=process_time_ns, number=repeats) / repeats

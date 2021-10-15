@@ -4,7 +4,8 @@ from typing import Optional
 
 from termcolor import cprint
 
-from lib import func_description, ArrayInt
+from lib.types import ArrayInt
+from lib import func_description
 
 
 class UserInteraction:
