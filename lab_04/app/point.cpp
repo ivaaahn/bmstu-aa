@@ -3,6 +3,7 @@
 //
 
 #include <cmath>
+#include <iostream>
 
 #include "point.hpp"
 #include "errors.hpp"
@@ -12,9 +13,15 @@ double to_rad(const double angle) {
     return angle * M_PI / 180.0;
 }
 
+using std::cout, std::endl;
+
 err_t read_point(double3& p, FILE *datafile) {
-    if (fscanf(datafile, "%lf %lf %lf", &p.x, &p.y, &p.z) != 3)
+    int cnt;
+    if ((cnt = fscanf(datafile, "%lf %lf %lf", &p.x, &p.y, &p.z)) != 3)
+    {
+        std::cout << cnt << std::endl;
         return ERR_FREAD;
+    }
 
     return SUCCESS;
 }

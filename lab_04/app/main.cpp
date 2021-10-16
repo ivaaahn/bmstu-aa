@@ -11,124 +11,147 @@
 
 #include <thread>
 
-#define FIN "../app/data/points.txt"
-#define FOUT "../app/data/points_res.txt"
+#define REPEATS 100
+#define PATH_TO_DATA "../app/data/"
+
+
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+#define RESET   "\033[0m"
+
 
 void print_points(std::vector<double3>& points) {
     for (auto& p: points)
         printf("(%lf, %lf, %lf)\n", p.x, p.y, p.z);
 }
 
-int load(std::vector<double3>& points, double3& center, const std::string& filename) {
-    FILE *f = fopen(filename.c_str(), "r");
-    auto err = load_points(points, center, f);
+void handle(std::vector<double3>& points, double3& center, const double3& rotate_data, int num_of_threads = 1) {
+    using std::move, std::thread, std::ref;
 
-//    printf("%d\n", err);
-//
-//    printf("(%lf, %lf, %lf)\n", center.x, center.y, center.z);
-//    print_points(points);
-    std::cout << "\n\n\n";
-    return SUCCESS;
-}
-
-#define NUM_OF_THREADS 128
-
-
-void handle(std::vector<double3>& points, double3& center, int num_of_threads = 1) {
     int points_per_thread = int(points.size()) / num_of_threads;
     int remaining_data = int(points.size()) - points_per_thread * num_of_threads;
-//    std::cout << points_per_thread << ' ' << remaining_data << std::endl;
-
-//    std::vector<std::pair<int, int>> q;
 
     std::vector<std::thread> threads;
     threads.reserve(num_of_threads);
 
-    int last = -1;
+    int last = -1, from, to;
     for (int i = 0; i < num_of_threads; ++i)
     {
+        from = last + 1;
         if (i < remaining_data)
         {
-            threads.push_back(std::move(
-                    std::thread(rotate_points, std::ref(points), std::ref(center), double3{123, 321, -569}, last + 1,
-                                last + points_per_thread + 1)));
-//            q.push_back({last + 1, last + points_per_thread + 1});
-//            std::cout <<  last + 1 << ":" << last + points_per_thread + 1 << " (" << 1 + points_per_thread << ")" << std::endl;
+            to = last + points_per_thread + 1;
             last += points_per_thread + 1;
         }
         else
         {
-            threads.push_back(std::move(
-                    std::thread(rotate_points, std::ref(points), std::ref(center), double3{-10325, 10345, -98441}, last + 1,
-                                last + points_per_thread)));
-//            std::cout <<  last + 1 << ":" << last + points_per_thread << " (" << points_per_thread << ")" << std::endl;
-
-//            q.push_back({last + 1, last + points_per_thread});
-//            last += points_per_thread;
+            to = last + points_per_thread;
+            last += points_per_thread;
         }
-    }
 
-//    for (auto& p: q)
-//        std::cout << p.first << ":" << p.second << " (" << p.second - p.first + 1 << ")" << std::endl;
-//
-//
-//    for (auto& p: q)
-//    {
-//        threads.push_back(std::move(
-//                std::thread(rotate_points, std::ref(points), std::ref(center), double3{123, 321, -569}, p.first-1,
-//                            p.second-1)));
-//
-//    }
+        threads.push_back(move(thread(rotate_points, ref(points), ref(center), rotate_data, from, to)));
+    }
 
     for (auto& t: threads)
         t.join();
-//
-//    std::thread x(rotate_points, std::ref(points), std::ref(center), {123, 321, -569}, 0,1);
-
-//    std::thread a(rotate_points, points, center, {123, 321, -569}, 0, 1);
-//        rotate_points(points, center, {123, 321, -569}, NUM_OF_THREADS);
-//    print_points(points);
 }
 
-int write(std::vector<double3>& points, const std::string& filename) {
-    FILE *f = fopen(filename.c_str(), "w");
-    write_points(points, f);
-
-    return SUCCESS;
+int write(std::vector<double3>& points, FILE *fd) {
+    return write_points(points, fd);
 }
+
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
+
 
 int main(int argc, char *argv[]) {
+    std::cout << BOLDYELLOW << "Введите желаемое количество потоков: " << RESET;
+
+    int num_of_threads = 1;
+    std::cin >> num_of_threads;
+
+    if (num_of_threads < 1)
+    {
+        std::cout << BOLDRED << "Некорректное количество потоков." << RESET << std::endl;
+        return -1;
+    }
+
     std::vector<double3> points;
-    std::vector<double3> points_res;
     double3 center{};
 
-    load(points, center, FIN);
+    std::string file_name;
 
-    using std::chrono::high_resolution_clock;
-    using std::chrono::duration_cast;
-    using std::chrono::duration;
-    using std::chrono::milliseconds;
+    std::cout << BOLDYELLOW << "Введите имя входного файла (из директории data/): " << RESET;
+    std::cin >> file_name;
 
-    const int count = 100;
+    file_name = PATH_TO_DATA + file_name;
+    std::cout << file_name << std::endl;
+    FILE *fin = fopen(file_name.c_str(), "r");
+    if (!fin)
+    {
+        std::cout << BOLDRED << "Не удалось открыть файл с названием " + file_name << RESET << std::endl;
+        return ERR_FOPEN;
+    }
+
+    err_t rc = load_points(points, center, fin);
+    fclose(fin);
+
+    if (rc != SUCCESS)
+    {
+        if (rc == ERR_FREAD)
+            std::cout << BOLDRED << "Не удалось загрузить точки из файла" << RESET << std::endl;
+        else
+            std::cout << BOLDRED << "Неизвестная ошибка" << RESET << std::endl;
+
+        return rc;
+    }
+
+    double ax, ay, az;
+    std::cout << BOLDYELLOW << "Введите три числа - углы повотора по ox/oy/oz: " << RESET;
+    std::cin >> ax >> ay >> az;
+
+//    double3 rotate_data {ax, ay, ax};
 
     auto t1 = high_resolution_clock::now();
-    for (int i = 0; i < count; i++)
-        handle(points, center, NUM_OF_THREADS);
+
+    for (int i = 0; i < REPEATS; i++)
+        handle(points, center, {ax, ay, az}, num_of_threads);
     auto t2 = high_resolution_clock::now();
 
     duration<double, std::milli> ms_double = t2 - t1;
-    std::cout << ms_double.count() / count << "ms";
-    write(points, FOUT);
-//
-//
-//
-//    if (argc >= 2)
-//        go(argv[1]);
-//    else
+
+    std::cout << BOLDBLUE << ms_double.count() / REPEATS << "ms" << RESET << std::endl;
+
+
+//    std::cout << BOLDYELLOW << "Введите имя выходного файла (из директории data/): " << RESET;
+//    std::cin >> file_name;
+
+    const std::string default_fout = std::string(PATH_TO_DATA) + "default_out.txt";
+
+//    file_name = PATH_TO_DATA + file_name;
+    FILE *fout = fopen(default_fout.c_str(), "w");
+//    if (!fout)
 //    {
-//        err_handler(ERR_ARGV);
-//        return EXIT_FAILURE;
+//        std::cout << BOLDRED << "Не удалось открыть файл с названием " + file_name << RESET << std::endl;
+//        std::cout << BOLDRED << "Результаты будут сохранены в файле " + default_fout << RESET << std::endl;
+//        fout = fopen(default_fout.c_str(), "w");
+//        write(points, fout);
+//        fclose(fout);
+//
+//        return ERR_FOPEN;
 //    }
+
+    write(points, fout);
+    fclose(fout);
 
     return 0;
 }
