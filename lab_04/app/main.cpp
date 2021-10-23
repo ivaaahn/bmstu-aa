@@ -72,29 +72,98 @@ using std::chrono::duration_cast;
 using std::chrono::duration;
 using std::chrono::milliseconds;
 
+//
+//int main(int argc, char *argv[]) {
+//    std::cout << BOLDYELLOW << "Введите желаемое количество потоков: " << RESET;
+//
+//    int num_of_threads = 1;
+//    std::cin >> num_of_threads;
+//
+//    if (num_of_threads < 1)
+//    {
+//        std::cout << BOLDRED << "Некорректное количество потоков." << RESET << std::endl;
+//        return -1;
+//    }
+//
+//    std::vector<double3> points;
+//    double3 center{};
+//
+//    std::string file_name;
+//
+//    std::cout << BOLDYELLOW << "Введите имя входного файла (из директории data/): " << RESET;
+//    std::cin >> file_name;
+//
+//    file_name = PATH_TO_DATA + file_name;
+//    std::cout << file_name << std::endl;
+//    FILE *fin = fopen(file_name.c_str(), "r");
+//    if (!fin)
+//    {
+//        std::cout << BOLDRED << "Не удалось открыть файл с названием " + file_name << RESET << std::endl;
+//        return ERR_FOPEN;
+//    }
+//
+//    err_t rc = load_points(points, center, fin);
+//    fclose(fin);
+//
+//    if (rc != SUCCESS)
+//    {
+//        if (rc == ERR_FREAD)
+//            std::cout << BOLDRED << "Не удалось загрузить точки из файла" << RESET << std::endl;
+//        else
+//            std::cout << BOLDRED << "Неизвестная ошибка" << RESET << std::endl;
+//
+//        return rc;
+//    }
+//
+//    double ax, ay, az;
+//    std::cout << BOLDYELLOW << "Введите три числа - углы повотора по ox/oy/oz: " << RESET;
+//    std::cin >> ax >> ay >> az;
+//
+////    double3 rotate_data {ax, ay, ax};
+//
+//    auto t1 = high_resolution_clock::now();
+//
+//    for (int i = 0; i < REPEATS; i++)
+//        handle(points, center, {ax, ay, az}, num_of_threads);
+//    auto t2 = high_resolution_clock::now();
+//
+//    duration<double, std::milli> ms_double = t2 - t1;
+//
+//    std::cout << BOLDBLUE << ms_double.count() / REPEATS << "ms" << RESET << std::endl;
+//
+//
+////    std::cout << BOLDYELLOW << "Введите имя выходного файла (из директории data/): " << RESET;
+////    std::cin >> file_name;
+//
+//    const std::string default_fout = std::string(PATH_TO_DATA) + "default_out.txt";
+//
+////    file_name = PATH_TO_DATA + file_name;
+//    FILE *fout = fopen(default_fout.c_str(), "w");
+////    if (!fout)
+////    {
+////        std::cout << BOLDRED << "Не удалось открыть файл с названием " + file_name << RESET << std::endl;
+////        std::cout << BOLDRED << "Результаты будут сохранены в файле " + default_fout << RESET << std::endl;
+////        fout = fopen(default_fout.c_str(), "w");
+////        write(points, fout);
+////        fclose(fout);
+////
+////        return ERR_FOPEN;
+////    }
+//
+//    write(points, fout);
+//    fclose(fout);
+//
+//    return 0;
+//}
+
+
+
+
 
 int main(int argc, char *argv[]) {
-    std::cout << BOLDYELLOW << "Введите желаемое количество потоков: " << RESET;
-
-    int num_of_threads = 1;
-    std::cin >> num_of_threads;
-
-    if (num_of_threads < 1)
-    {
-        std::cout << BOLDRED << "Некорректное количество потоков." << RESET << std::endl;
-        return -1;
-    }
-
     std::vector<double3> points;
     double3 center{};
-
-    std::string file_name;
-
-    std::cout << BOLDYELLOW << "Введите имя входного файла (из директории data/): " << RESET;
-    std::cin >> file_name;
-
-    file_name = PATH_TO_DATA + file_name;
-    std::cout << file_name << std::endl;
+    std::string file_name = PATH_TO_DATA + std::string("points.txt");
     FILE *fin = fopen(file_name.c_str(), "r");
     if (!fin)
     {
@@ -115,14 +184,14 @@ int main(int argc, char *argv[]) {
         return rc;
     }
 
-    double ax, ay, az;
-    std::cout << BOLDYELLOW << "Введите три числа - углы повотора по ox/oy/oz: " << RESET;
-    std::cin >> ax >> ay >> az;
+    double ax = 10, ay = 15, az = 30;
 
-//    double3 rotate_data {ax, ay, ax};
+    int num_of_threads = 1;
+//2073600
+
+    std::cout << "num_of_threads: " << num_of_threads << std::endl;
 
     auto t1 = high_resolution_clock::now();
-
     for (int i = 0; i < REPEATS; i++)
         handle(points, center, {ax, ay, az}, num_of_threads);
     auto t2 = high_resolution_clock::now();
@@ -130,28 +199,6 @@ int main(int argc, char *argv[]) {
     duration<double, std::milli> ms_double = t2 - t1;
 
     std::cout << BOLDBLUE << ms_double.count() / REPEATS << "ms" << RESET << std::endl;
-
-
-//    std::cout << BOLDYELLOW << "Введите имя выходного файла (из директории data/): " << RESET;
-//    std::cin >> file_name;
-
-    const std::string default_fout = std::string(PATH_TO_DATA) + "default_out.txt";
-
-//    file_name = PATH_TO_DATA + file_name;
-    FILE *fout = fopen(default_fout.c_str(), "w");
-//    if (!fout)
-//    {
-//        std::cout << BOLDRED << "Не удалось открыть файл с названием " + file_name << RESET << std::endl;
-//        std::cout << BOLDRED << "Результаты будут сохранены в файле " + default_fout << RESET << std::endl;
-//        fout = fopen(default_fout.c_str(), "w");
-//        write(points, fout);
-//        fclose(fout);
-//
-//        return ERR_FOPEN;
-//    }
-
-    write(points, fout);
-    fclose(fout);
 
     return 0;
 }
