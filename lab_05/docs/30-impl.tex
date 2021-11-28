@@ -1,0 +1,363 @@
+\chapter{Технологическая часть}
+В данном разделе приведны требования к программному обеспечению, средства реализации и листинги кода
+
+
+\section{Средства реализации}
+
+В качестве языка программирования для реализации лаборатор­ной работы был выбран язык Golang\cite{golang}. 
+Выбор этого языка обусловлен наличием требуемого функционала для организации параллельных 
+вы­числений. Также выбор обусловлен моим желанием получить больше практики в написании программ на этом языке.
+
+
+\section{Тестирование}
+
+В рамках данной лабораторной работы будет проведено тестирование реализованного программного обеспечения.
+
+При разработке тестов были выделены следующие классы эквивалентности:
+\begin{itemize}
+    \item входными данными является путь к файлу;
+    \item входными данными является путь до директории;
+\end{itemize}
+
+В соответствии с данными классами эквивалентности были разработаны тесты, представленные в таблице \ref{tab:tests}.
+
+Все тесты пройдены успешно.
+\begin{table}[h!]
+	\begin{center}
+        \captionof{table}{Тестирование функций}
+		\begin{tabular}{|c|c|c|}
+			\hline
+			Вход. данные & Ожидаемый результат & Реальный результат \\ 
+            \hline
+            \code{report.pdf} & \code{293ae5375e60da69337946e4e88fea5c} & \code{293ae5375e60da69337946e4e88fea5c} \\
+            \hline
+            $.$        & \code{dfad7f3da4a378ed5d4cebbff9f0814e} & \code{dfad7f3da4a378ed5d4cebbff9f0814e} \\
+                       & \code{ad1b1770cb63d88541cbe86d23ce6e2b} & \code{ad1b1770cb63d88541cbe86d23ce6e2b} \\
+                       & \code{f197857f15b383af48cf83e607fe3173} & \code{f197857f15b383af48cf83e607fe3173} \\
+                       & \code{1e1a8e2e9e494885fdaf038c4505b27d} & \code{1e1a8e2e9e494885fdaf038c4505b27d} \\
+                       & \code{4193feec424757f73a9a1fb8b1ed0d75} & \code{4193feec424757f73a9a1fb8b1ed0d75} \\
+                       & \code{3c60ddab06846a52e8cff94c6bd539e6} & \code{3c60ddab06846a52e8cff94c6bd539e6} \\
+                       & \code{f07805bc3115d7df108473490a02476d} & \code{f07805bc3115d7df108473490a02476d} \\
+                       & \code{9faa535100c9cfa1fee02b5e25507868} & \code{9faa535100c9cfa1fee02b5e25507868} \\
+                       & \code{7f32a0988dc453353b1785ecf975206d} & \code{7f32a0988dc453353b1785ecf975206d} \\
+            \hline
+        \end{tabular}
+        \label{tab:tests}
+	\end{center}
+\end{table}
+
+
+
+\section{Реализация конвеера}
+
+На листингах \ref{lst:main} -- \ref{lst:aggregate} представлен исходный код программы.
+\begin{lstlisting}[label=lst:main,caption={Точка входа в программу}]
+func main() {
+    parser := argparse.NewParser("md5pipeline", "Hashing files in directory")
+
+    verbose := parser.Flag(
+        "v", "verbose", &argparse.Options{Help: "Verbose mode"},
+    )
+
+    measures := parser.Flag(
+        "m", "measures", &argparse.Options{Help: "Show only measures"},
+    )
+
+    serialMode := parser.Flag(
+        "s", "serial", &argparse.Options{Help: "Serial Mode"},
+    )
+
+    path := parser.String(
+        "p", "path", &argparse.Options{
+            Required: true,
+            Help: "Path to file (dir)",
+        },
+    )
+
+    numberOfWorkers := parser.Int(
+        "n", "numberOfWorkers", &argparse.Options{
+            Required: false,
+            Help: "Number of digester workers",
+        },
+    )
+
+    err := parser.Parse(os.Args)
+    if err != nil {
+        log.Fatalln(parser.Usage(err))
+        return
+    }
+
+
+    if *numberOfWorkers == 0 {
+        *numberOfWorkers = 16
+    }
+
+    pipeline := md5pipeline.NewPipeline(*numberOfWorkers)
+
+    startT := time.Now()
+
+    var data []md5pipeline.ResultingOutput
+
+    if *serialMode {
+        data, err = pipeline.MD5AllSerial(*path)
+    } else {
+        data, err = pipeline.MD5All(*path)
+    }
+
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    handle(data, startT, time.Since(startT).Nanoseconds(), *verbose, *measures)
+}
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:types,caption={Определение пользовательских типов данных}]
+type fileScannerOutput struct {
+    path string
+
+    startTime time.Time
+    endTime   time.Time
+}
+
+type digesterOutput struct {
+    path string
+    sum  [md5.Size]byte
+    err  error
+
+    startFileScannerTime time.Time
+    endFileScannerTime   time.Time
+
+    waitingTimeInQueue time.Duration
+    startTime          time.Time
+    endTime            time.Time
+}
+
+type ResultingOutput struct {
+    Path string
+    Sum  [md5.Size]byte
+
+    Start1 time.Time
+    End1   time.Time
+
+    WaitingForDigester time.Duration
+    Start2             time.Time
+    End2               time.Time
+
+    WaitingForAggregation time.Duration
+    Start3                time.Time
+    End3                  time.Time
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[label=lst:pipeline,caption={Определение структуры конвеера}]
+type MD5Pipeline struct {
+    numOfWorkers int
+}
+
+func NewPipeline(numOfWorkers int) MD5Pipeline {
+    return MD5Pipeline{numOfWorkers: numOfWorkers}
+}
+\end{lstlisting}
+    
+
+\begin{lstlisting}[label=lst:fs,caption={Лента обхода файловой системы}]
+func scanFiles(done <-chan struct{}, root string) (<-chan fileScannerOutput, <-chan error) {
+	fileScanOutputChan := make(chan fileScannerOutput, queueSize)
+	scanErrors := make(chan error, 1)
+
+	go func() {
+		defer close(fileScanOutputChan)
+		startTime := time.Now()
+		scanErrors <- filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !info.Mode().IsRegular() {
+				return nil
+			}
+
+			select {
+			case fileScanOutputChan <- fileScannerOutput{
+				path,
+				startTime,
+				time.Now(),
+			}:
+
+				startTime = time.Now()
+			case <-done:
+				return errors.New("scanning was canceled")
+			}
+
+			return nil
+		})
+	}()
+
+	return fileScanOutputChan, scanErrors
+}
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:dig,caption={Лента вычисления хеш-суммы}]
+func digester(done <-chan struct{}, fsOutputChan <-chan fileScannerOutput, digesterOutputChan chan<- digesterOutput) {
+    for fileInfo := range fsOutputChan {
+        startT := time.Now()
+        fileData, err := ioutil.ReadFile(fileInfo.path)
+
+        checksum := md5.Sum(fileData)
+
+        select {
+        case digesterOutputChan <- digesterOutput{
+            fileInfo.path,
+            checksum,
+            err,
+            fileInfo.startTime,
+            fileInfo.endTime,
+            startT.Sub(fileInfo.endTime),
+            startT,
+            time.Now(),
+        }:
+        case <-done:
+            return
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:aggregate,caption={Запуск конвейера}]
+func (p *MD5Pipeline) MD5All(root string) ([]ResultingOutput, error) {
+    done := make(chan struct{})
+    defer close(done)
+
+    scanOutputChan, scanErrors := scanFiles(done, root)
+
+    digesterOutputChan := make(chan digesterOutput, queueSize)
+
+    var wg sync.WaitGroup
+    wg.Add(p.numOfWorkers)
+
+    for i := 0; i < p.numOfWorkers; i++ {
+        go func() {
+            digester(done, scanOutputChan, digesterOutputChan)
+            wg.Done()
+        }()
+    }
+
+    go func() {
+        wg.Wait()
+        close(digesterOutputChan)
+    }()
+
+    result := make([]ResultingOutput, 0)
+
+    for digesterRes := range digesterOutputChan {
+        startTime := time.Now()
+
+        if digesterRes.err != nil {
+            return nil, digesterRes.err
+        }
+
+        result = append(result, ResultingOutput{
+            digesterRes.path,
+            digesterRes.sum,
+            digesterRes.startFileScannerTime,
+            digesterRes.endFileScannerTime,
+            digesterRes.waitingTimeInQueue,
+            digesterRes.startTime,
+            digesterRes.endTime,
+            startTime.Sub(digesterRes.endTime),
+            startTime,
+            time.Now(),
+        })
+    }
+
+    if err := <-scanErrors; err != nil {
+        return nil, err
+    }
+
+    return result, nil
+}
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:serial,caption={Последовательная версия программы}]
+func (p *MD5Pipeline) MD5AllSerial(root string) ([]ResultingOutput, error) {
+	paths := make([]fileScannerOutput, 0)
+	hashes := make([]digesterOutput, 0)
+	result := make([]ResultingOutput, 0)
+	scanErrors := make(chan error, 1)
+
+	startT := time.Now()
+	scanErrors <- filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+
+		paths = append(paths, fileScannerOutput{
+			path,
+			startT,
+			time.Now(),
+		})
+
+		startT = time.Now()
+		return nil
+	})
+
+	for _, fileInfo := range paths {
+		startT = time.Now()
+		fileData, err := ioutil.ReadFile(fileInfo.path)
+
+		checksum := md5.Sum(fileData)
+
+		hashes = append(hashes, digesterOutput{
+			fileInfo.path,
+			checksum,
+			err,
+			fileInfo.startTime,
+			fileInfo.endTime,
+			startT.Sub(fileInfo.endTime),
+			startT,
+			time.Now(),
+		})
+	}
+
+
+	for _, digesterRes := range hashes {
+		startT = time.Now()
+
+		if digesterRes.err != nil {
+			return nil, digesterRes.err
+		}
+
+		result = append(result, ResultingOutput{
+			digesterRes.path,
+			digesterRes.sum,
+			digesterRes.startFileScannerTime,
+			digesterRes.endFileScannerTime,
+			digesterRes.waitingTimeInQueue,
+			digesterRes.startTime,
+			digesterRes.endTime,
+			startT.Sub(digesterRes.endTime),
+			startT,
+			time.Now(),
+		})
+	}
+
+	if err := <-scanErrors; err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+\end{lstlisting}
+
+
+\section{Вывод}
+В данном разделе была представлена реализация ПО на языке golang для ре­
+шения поставленной задачи, а также проведено тестирование в соответствии 
+с выделенными классами эквивалентности.
