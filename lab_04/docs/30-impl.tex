@@ -1,0 +1,197 @@
+\chapter{Технологическая часть}
+В данном разделе приведны средства реализации, результаты тестирования и листинги кода.
+
+\section{Средства реализации}
+
+Для реализации распараллеливания алгоритма был выбран язык программирования \texttt{C++} \cite{cpp}, 
+что обусловлено поддержкой нативных потоков ядра, а также простотой интерфейса библиотеки для взаимодейсвтия с ними. 
+В качестве среды разработки был выбран \texttt{CLion}\cite{clion}, как наиболее популярная IDE для \texttt{C++}. 
+
+\section{Функциональное тестирование}
+
+В соответствии с выделеными классами эквивалентности были разработаны тесты, 
+представленные в таблице \ref{tab:tests}.
+\begin{table}[h!]
+	\begin{center}
+        \captionof{table}{Тестирование функций}
+		\begin{tabular}{|c|c|c|c|c|c|}
+			\hline
+			Массив точек & Центр & Углы, $^{\circ}$ & Потоки & Ожидаемый рез. & Реальный рез. \\ 
+            \hline
+            $[(1,0)]$ &
+            $(0,0)$ &
+            $(0,0,0)$ &
+            $1$ &
+            $[(1,0)]$ &
+            $[(1,0)]$ \\
+            \hline
+            $[(1,0)]$ &
+            $(0,0)$ &
+            $(0,0,90)$ &
+            $1$ &
+            $[(0,1)]$ &
+            $[(0,1)]$ \\
+            \hline
+            $[(1,0)]$ &
+            $(0,0)$ &
+            $(0,0,-90)$ &
+            $1$ &
+            $[(-1,0)]$ &
+            $[(-1,0)]$ \\
+            \hline
+            $[ ]$ &
+            $(5,2)$ &
+            $(1,1,1)$ &
+            $1$ &
+            $[ ]$ &
+            $[ ]$ \\
+            \hline
+            $[(1,0)]$ &
+            $(0,0)$ &
+            $(0,0,0)$ &
+            $1$ &
+            $[(1,0)]$ &
+            $[(1,0)]$ \\
+            \hline
+            $[(1,0), (1,0)]$ &
+            $(0,0)$ &
+            $(0,0,90)$ &
+            $1$ &
+            $[(0,1), (0,1)]$ &
+            $[(0,1), (0,1)]$ \\
+            \hline
+            $[(1,0)]$ &
+            $(0,0)$ &
+            $(0,0,0)$ &
+            $1$ &
+            $[(1,0)]$ &
+            $[(1,0)]$ \\
+            \hline
+            $[(1,0)]$ &
+            $(0,0)$ &
+            $(0,0,0)$ &
+            $8$ &
+            $[(1,0)]$ &
+            $[(1,0)]$ \\
+            \hline
+            $[(1,0)]$ &
+            $(0,0)$ &
+            $(0,0,0)$ &
+            $0$ &
+            Ошибка &
+            Ошибка \\
+            \hline
+            $[(q,0)]$ &
+            $(2,1)$ &
+            $(0,0,0)$ &
+            $1$ &
+            Ошибка &
+            Ошибка \\
+            \hline
+            $[(0,0)]$ &
+            $(1,2)$ &
+            $(0,q,0)$ &
+            $1$ &
+            Ошибка &
+            Ошибка \\
+            \hline
+        \end{tabular}
+        \label{tab:tests}
+	\end{center}
+\end{table}
+
+Все тесты пройдены успешно.
+
+\section{Реализация алгоритмов}
+
+В листинге \ref{lst:rotates} представлена реализация алгоритма поворота точек.
+\begin{lstlisting}[label=lst:rotates,caption={Реализация алгоритма поворота точек}]
+struct double3 {
+    double x;
+    double y;
+    double z;
+};
+
+void rotate_points(std::vector<double3>& points, double3& center, const double3& rot_data, int idx0, int idx1) {
+    for (int i = idx0; i <= idx1; ++i) {
+        translate_point(points[i], {-center.x, -center.y, -center.z});
+        rotate_point(points[i], rot_data);
+        translate_point(points[i], {center.x, center.y, center.z});
+    }
+}
+
+void rotate_point(double3& point, const double3& rot_data) {
+    rotate_x_axis(point, rot_data.x);
+    rotate_y_axis(point, rot_data.y);
+    rotate_z_axis(point, rot_data.z);
+}
+
+
+void translate_point(double3& p, const double3& tr_data) {
+    p.x += tr_data.x;
+    p.y += tr_data.y;
+    p.z += tr_data.z;
+}
+\end{lstlisting}
+
+В листинге \ref{lst:conc_rotate} представлена реализация алгоритима поворота точки вокруг
+каждой из осей.
+\begin{lstlisting}[label=lst:conc_rotate,caption={Реализация алгоритма поворота точек}]
+void rotate_x_axis(double3& p, const double angle) {
+    double cos_theta = cos(to_rad(angle));
+    double sin_theta = sin(to_rad(angle));
+    double temp_y = p.y;
+    p.y = p.y * cos_theta - p.z * sin_theta;
+    p.z = temp_y * sin_theta + p.z * cos_theta;
+}
+
+static void rotate_y_axis(double3& p, const double angle) {
+    double cos_theta = cos(to_rad(angle));
+    double sin_theta = sin(to_rad(angle));
+
+    double temp_x = p.x;
+    p.x = p.x * cos_theta - p.z * sin_theta;
+    p.z = temp_x * sin_theta + p.z * cos_theta;
+}
+
+static void rotate_z_axis(double3& p, const double angle) {
+    double cos_theta = cos(to_rad(angle));
+    double sin_theta = sin(to_rad(angle));
+
+    double temp_x = p.x;
+    p.x = p.x * cos_theta - p.y * sin_theta;
+    p.y = temp_x * sin_theta + p.y * cos_theta;
+}
+\end{lstlisting}
+
+В листинге \ref{lst:distr} представлена реализация алгоритма распределения точек по потокам.
+\begin{lstlisting}[label=lst:distr,caption={Реализация алгоритма поворота точек}]
+void handle(vector<double3>& points, double3& center, const double3& rotate_data, int num_of_threads = 1) {
+    int points_per_thread = int(points.size()) / num_of_threads;
+    int remaining_data = int(points.size()) - points_per_thread * num_of_threads;
+    vector<thread> threads;
+
+    int last = -1, from, to;
+    for (int i = 0; i < num_of_threads; ++i) {
+        from = last + 1;
+        if (i < remaining_data) {
+            to = last + points_per_thread + 1;
+            last += points_per_thread + 1;
+        } else {
+            to = last + points_per_thread;
+            last += points_per_thread;
+        }
+        threads.push_back(thread(rotate_points, points, center, rotate_data, from, to));
+    }
+
+    for (auto& t: threads)
+        t.join();
+}
+\end{lstlisting}
+
+\section{Вывод}
+
+В данном разделе были реализованы последовательная и распа­раллеленная версии 
+алгоритма поворота точек фигуры в пространстве. Данные реализации алгоритмов были
+протестированы функциональными тестами, построенными на основе выделенных классов 
+эквивалентности.
