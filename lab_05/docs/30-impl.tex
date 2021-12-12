@@ -113,45 +113,6 @@ func main() {
 }
 \end{lstlisting}
 
-\begin{lstlisting}[label=lst:types,caption={Определение пользовательских типов данных}]
-type fileScannerOutput struct {
-    path string
-
-    startTime time.Time
-    endTime   time.Time
-}
-
-type digesterOutput struct {
-    path string
-    sum  [md5.Size]byte
-    err  error
-
-    startFileScannerTime time.Time
-    endFileScannerTime   time.Time
-
-    waitingTimeInQueue time.Duration
-    startTime          time.Time
-    endTime            time.Time
-}
-
-type ResultingOutput struct {
-    Path string
-    Sum  [md5.Size]byte
-
-    Start1 time.Time
-    End1   time.Time
-
-    WaitingForDigester time.Duration
-    Start2             time.Time
-    End2               time.Time
-
-    WaitingForAggregation time.Duration
-    Start3                time.Time
-    End3                  time.Time
-}
-\end{lstlisting}
-
-
 \begin{lstlisting}[label=lst:pipeline,caption={Определение структуры конвеера}]
 type MD5Pipeline struct {
     numOfWorkers int
@@ -358,6 +319,6 @@ func (p *MD5Pipeline) MD5AllSerial(root string) ([]ResultingOutput, error) {
 
 
 \section{Вывод}
-В данном разделе была представлена реализация ПО на языке golang для ре­
-шения поставленной задачи, а также проведено тестирование в соответствии 
-с выделенными классами эквивалентности.
+В данном разделе была представлена реализация ПО на языке golang для ре­шения 
+поставленной задачи, а также проведено тестирование в соответствии с 
+выделенными классами эквивалентности.
