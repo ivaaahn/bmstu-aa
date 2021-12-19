@@ -15,4 +15,7 @@ class Matrix:
 
     @staticmethod
     def generate(nodes_count) -> MatrixType:
-        return [sample(range(1, 1000), nodes_count) for _ in range(nodes_count)]
+        pre = [sample(range(1, 1000), nodes_count) for _ in range(nodes_count)]
+        for i in range(nodes_count):
+            pre[i][i] = 0
+        return pre

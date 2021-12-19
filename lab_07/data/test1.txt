@@ -1,0 +1,27 @@
+PyCharm is a dedicated Python Integrated Development Environment (IDE) providing a wide range of essential tools for Python developers, tightly integrated to create a convenient environment for productive Python, web, and data science development.
+
+Choose the best PyCharm for you﻿
+PyCharm is available in three editions:
+
+Community (free and open-sourced): for smart and intelligent Python development, including code assistance, refactorings, visual debugging, and version control integration.
+
+Professional (paid) for professional Python, web, and data science development, including code assistance, refactorings, visual debugging, version control integration, remote configurations, deployment, support for popular web frameworks, such as Django and Flask, database support, scientific tools (including Jupyter notebook support), big data tools.
+
+Edu (free and open-sourced): for learning programming languages and related technologies with integrated educational tools.
+
+For details, see the editions comparison matrix.
+
+Supported languages﻿
+To start developing in Python with PyCharm you need to download and install Python from python.org depending on your platform.
+
+PyCharm supports the following versions of Python:
+
+Python 2: version 2.7
+
+Python 3: from the version 3.6 up to the version 3.11
+
+Besides, in the Professional edition, one can develop Django , Flask, and Pyramid applications. Also, it fully supports HTML (including HTML5), CSS, JavaScript, and XML: these languages are bundled in the IDE via plugins and are switched on for you by default. Support for the other languages and frameworks can also be added via plugins (go to Settings | Plugins or PyCharm | Preferences | Plugins for macOS users, to find out more or set them up during the first IDE launch).
+
+Supported platforms﻿
+PyCharm is a cross-platform IDE that works on Windows, macOS, and Linux. Check the system requirements:
+
