@@ -7,7 +7,7 @@ PATH = './data'
 
 
 def stat(m: Dictionary, sm: SegDictionary):
-    _scnd_ver1: list[tuple[int, tuplePair]] = []
+    _scnd_ver1: list[tuple[int, Pair]] = []
     _scnd_ver2 = []
     _scnd_ver3 = []
 
